@@ -1,6 +1,6 @@
 import pickle
-import re
 from requests_html import HTMLSession
+
 
 pokemon_base = {
     "name": "",
@@ -11,7 +11,6 @@ pokemon_base = {
     "current_exp": 0,
     "attacks": []
 }
-
 URL_BASE_POKEMON = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/pkmn&pk="
 URL_MOVESET = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/movimientos_nivel&pk="
 
@@ -28,21 +27,10 @@ def get_pokemon(index):
     new_pokemon["name"] = pokemon_page.html.find(".mini", first =True).text.split('\n')[0]
 
     # Get Pokémon type
-    type_list= [
-    "normal", "fuego", "agua", "planta", "eléctrico", "hielo",
-    "lucha", "veneno", "tierra", "volador", "psíquico", "bicho",
-    "roca", "fantasma", "dragón"
-    ]
-    type_pattern = r"/([\w-]+)\.png$"
-    new_pokemon_type = pokemon_page.html.find("img")
-    for img in new_pokemon_type:
-        src = img.attrs.get('src', '')
-        match = re.search(type_pattern, src)
-        if match:
-            type_found= match.group(1)
-            if type_found in type_list:
-                if type_found not in new_pokemon["type"]:
-                    new_pokemon["type"].append(type_found)
+
+    td_type = pokemon_page.html.find("td")[16]
+    img_type = td_type.find("img")
+    new_pokemon["type"] = [img.attrs.get("alt") for img in img_type if "alt" in img.attrs]
 
     # Get Pokémon move set
     url_move_set= f"{URL_MOVESET}{index}"
@@ -70,18 +58,11 @@ def get_all_pokemon():
     except FileNotFoundError:
         print("¡Archivo no encontrado! Cargando de internet...")
         all_pokemon = []
-        for index in range(151):
+        for index in range(150):
             all_pokemon.append(get_pokemon(index+1))
             print("*", end="")
         with open("pokefile.pkl", "wb") as pokefile:
             pickle.dump(all_pokemon, pokefile)
         print("\nTodos los Pokémon han sido descargados")
     return all_pokemon
-
-def main():
-    print(get_all_pokemon())
-
-if __name__ == "__main__":
-    main()
-
 

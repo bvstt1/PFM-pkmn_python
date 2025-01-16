@@ -1,6 +1,5 @@
 import random
 from pprint import pprint
-
 from pokeload import get_all_pokemon
 
 
@@ -13,10 +12,24 @@ def get_player_profile(pokemon_list):
         "health_potion": 0,
     }
 
+def any_player_pokemon_lives(player_profile):
+    return sum([pokemon["current_health"] for pokemon in player_profile["pokemon_inventory"]]) > 0
+
+def fight():
+    pass
+
+
 def main ():
     pokemon_list = get_all_pokemon()
     player_profile = get_player_profile(pokemon_list)
-    pprint(player_profile)
+
+    while any_player_pokemon_lives(player_profile):
+        enemy_pokemon = random.choice(pokemon_list)
+        fight(player_profile, enemy_pokemon)
+
+
+    print(f"Has perdido en el combate numero: {player_profile["combats"]}")
+
 
 if __name__ ==  "__main__":
     main()

@@ -1,7 +1,6 @@
 import pickle
 from requests_html import HTMLSession
 
-
 pokemon_base = {
     "name": "",
     "current_health": 100,

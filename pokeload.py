@@ -49,7 +49,7 @@ def get_pokemon(index):
         attack ={
             "name": attack_item.find("a", first=True).text,
             "type": attack_item.find("td")[1].find("img", first=True).attrs["alt"],
-            "min level": attack_item.find("th", first=True).text,
+            "min level": int(attack_item.find("th", first=True).text) if attack_item.find("th", first=True).text else 0,
             "damege": int(attack_item.find("td")[3].text.replace("--","0")),
         }  
         new_pokemon["attacks"].append(attack)

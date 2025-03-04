@@ -151,7 +151,137 @@ def get_choose_enemy_pokemon_fight(enemy_profile):
     return chose_pkmn
 
 
-def pokemon_state(chosen_attack, pkmn_attacked, pkmn_received):
+def pokemon_type_damage(chosen_attack, pkmn_attacked, pkmn_received):
+    multiplicador = 1
+
+    #normal
+    if chosen_attack["type"] == "normal" and pkmn_received["type"] in ["fantasma"]:
+        multiplicador = 0
+    elif chosen_attack["type"] == "normal" and pkmn_received["type"] in ["roca"]:
+        multiplicador = 0.5
+
+    #lucha
+    elif chosen_attack["type"] == "lucha" and pkmn_received["type"] in ["fantasma"]:
+        multiplicador = 0
+    elif chosen_attack["type"] == "lucha" and pkmn_received["type"] in ["volador", "veneno", "bicho", "psiquico"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "lucha" and pkmn_received["type"] in ["normal", "roca", "hielo"]:
+        multiplicador = 2
+
+    #volador
+    elif chosen_attack["type"] == "volador" and pkmn_received["type"] in ["roca", "electrico"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "volador" and pkmn_received["type"] in ["lucha", "bicho", "planta"]:
+        multiplicador = 2
+
+    #veneno
+    elif chosen_attack["type"] == "veneno" and pkmn_received["type"] in ["veneno","tierra","roca","fantasma"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "veneno" and pkmn_received["type"] in ["bicho", "planta"]:
+        multiplicador = 2
+
+    #veneno
+    elif chosen_attack["type"] == "veneno" and pkmn_received["type"] in ["veneno","tierra","roca","fantasma"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "veneno" and pkmn_received["type"] in ["bicho", "planta"]:
+        multiplicador = 2
+
+    # Agua
+    elif chosen_attack["type"] == "agua" and pkmn_received["type"] in ["agua", "planta"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "agua" and pkmn_received["type"] in ["fuego", "tierra", "roca"]:
+        multiplicador = 2
+
+    # Fuego
+    elif chosen_attack["type"] == "fuego" and pkmn_received["type"] in ["fuego", "agua", "roca"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "fuego" and pkmn_received["type"] in ["planta", "hielo", "bicho", "acero"]:
+        multiplicador = 2
+
+    # Planta
+    elif chosen_attack["type"] == "planta" and pkmn_received["type"] in ["agua", "tierra", "roca"]:
+        multiplicador = 2
+    elif chosen_attack["type"] == "planta" and pkmn_received["type"] in ["fuego", "volador", "veneno", "bicho", "hielo"]:
+        multiplicador = 0.5
+
+    # Hielo
+    elif chosen_attack["type"] == "hielo" and pkmn_received["type"] in ["agua", "fuego", "roca", "acero"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "hielo" and pkmn_received["type"] in ["dragón", "planta", "volador"]:
+        multiplicador = 2
+
+    # Electrico
+    elif chosen_attack["type"] == "electrico" and pkmn_received["type"] in ["tierra"]:
+        multiplicador = 0
+    elif chosen_attack["type"] == "electrico" and pkmn_received["type"] in ["electrico", "tierra"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "electrico" and pkmn_received["type"] in ["agua", "volador"]:
+        multiplicador = 2
+
+    # Tierra
+    elif chosen_attack["type"] == "tierra" and pkmn_received["type"] in ["volador"]:
+        multiplicador = 0
+    elif chosen_attack["type"] == "tierra" and pkmn_received["type"] in ["agua", "planta", "hielo"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "tierra" and pkmn_received["type"] in ["fuego", "veneno", "roca", "acero", "electrico"]:
+        multiplicador = 2
+
+    # Acero
+    elif chosen_attack["type"] == "acero" and pkmn_received["type"] in ["agua", "fuego", "roca"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "acero" and pkmn_received["type"] in ["hielo", "hada"]:
+        multiplicador = 2
+
+    # Fantasma
+    elif chosen_attack["type"] == "fantasma" and pkmn_received["type"] in ["normal", "lucha"]:
+        multiplicador = 0
+    elif chosen_attack["type"] == "fantasma" and pkmn_received["type"] in ["fantasma"]:
+        multiplicador = 2
+
+    # Dragón
+    elif chosen_attack["type"] == "dragón" and pkmn_received["type"] in ["dragón"]:
+        multiplicador = 2
+    elif chosen_attack["type"] == "dragón" and pkmn_received["type"] in ["hada"]:
+        multiplicador = 0
+
+    # Roca
+    elif chosen_attack["type"] == "roca" and pkmn_received["type"] in ["fuego", "hielo", "volador", "bicho"]:
+        multiplicador = 2
+    elif chosen_attack["type"] == "roca" and pkmn_received["type"] in ["agua", "planta", "tierra"]:
+        multiplicador = 0.5
+
+    # Acero
+    elif chosen_attack["type"] == "acero" and pkmn_received["type"] in ["agua", "fuego", "roca"]:
+        multiplicador = 0.5
+    elif chosen_attack["type"] == "acero" and pkmn_received["type"] in ["hielo", "hada"]:
+        multiplicador = 2
+
+    else:
+        pass
+
+    return multiplicador
+
+
+def damege (chosen_attack, pkmn_attacked,pkmn_received):
+    real_damage = 0
+    multiplicador = pokemon_type_damage(chosen_attack,pkmn_attacked, pkmn_received)
+
+    if chosen_attack["category"] == "fisico":
+        damage = (((2 * pkmn_attacked['level']) / 5) + 2) * chosen_attack['power attack'] * \
+                 (pkmn_attacked['attack'] / pkmn_received['defense']) / 50 + 2
+        real_damage = int(damage * multiplicador)
+
+    elif chosen_attack["category"] == "especial":
+        damage = (((2 * pkmn_attacked['level']) / 5) + 2) * chosen_attack['power attack'] * \
+                 (pkmn_attacked['special attack'] / pkmn_received['special defense']) / 50 + 2
+        real_damage =  int(damage * multiplicador)
+
+    else:
+        pass
+    return real_damage, multiplicador
+
+
+def damage_state(chosen_attack, pkmn_attacked, pkmn_received):
 
     CHOSEN_NAME = chosen_attack['name']
 
@@ -164,38 +294,52 @@ def pokemon_state(chosen_attack, pkmn_attacked, pkmn_received):
     pkmn_received_speed_original = pkmn_received['speed']
 
     # Defense
-    if CHOSEN_NAME == ["Refugio"]:
+    if CHOSEN_NAME == ["Refugio", "Fortaleza", "Rizo defensa", "Barrera", "Armadura Ácida"]:
         pkmn_attacked["defense"] += 2
         print(f"La dsefensa de {pkmn_attacked['name']} ha subido!")
 
-    elif CHOSEN_NAME == ["Ataque Arena", 'Chirrido']:
+    elif CHOSEN_NAME == ["Ataque Arena", 'Chirrido', "Látigo", "Malicioso"]:
         pkmn_received["defense"] -= 2
         print(f"El ataque de {pkmn_attacked['name']} ha subido!")
 
     # Attack
-    elif CHOSEN_NAME == ["Afilar","Danza espada", "Desarrollo"]:
+    elif CHOSEN_NAME == ["Afilar","Danza espada", "Desarrollo", "Amnesia", "Meditación"]:
         pkmn_attacked["attack"] += 2
         print(f"El ataque de {pkmn_attacked['name']} ha subido!")
 
+    elif CHOSEN_NAME == ["Foco Energía", "Gruñido"]:
+        pkmn_received["attack"] -= 2
+        print(f"El ataque de {pkmn_attacked['name']} ha subido!")
+
     # Speed
-    elif CHOSEN_NAME == ["Disparo Demora", "Conversión", "Destello"]:
+    elif CHOSEN_NAME == ["Disparo Demora", "Conversión", "Destello", "Pantalla de Humo", "Kinético"]:
         pkmn_received['speed'] -= 2
         print(f"La velocidad de {pkmn_received['name']} ha bajado!")
 
-    elif CHOSEN_NAME == ['Doble equipo']:
+    elif CHOSEN_NAME == ['Doble equipo', "Metrónomo", "Reducción", "Agilidad"]:
         pkmn_attacked["speed"] += 2
         print(f"El ataque de {pkmn_attacked['name']} ha subido!")
 
+    # Special Attack
+    elif CHOSEN_NAME == ["Amnesia"]:
+        pkmn_attacked["attack"] += 2
+        print(f"El ataque especial de {pkmn_attacked['name']} ha subido!")
+
+    # Special Defense
+    elif CHOSEN_NAME == ["Pantalla de Luz", "Reflejo"]:
+        pkmn_attacked["attack"] += 2
+        print(f"La defensa especial de {pkmn_attacked['name']} ha subido!")
+
     # States
-    elif CHOSEN_NAME == ['Onda Trueno', "Deslumbrar"]:
+    elif CHOSEN_NAME == ['Onda Trueno', "Deslumbrar", "Paralizador"]:
         # pkmn_recived se paraliza
         pass
 
-    elif CHOSEN_NAME == ['Rayo Confuso']:
+    elif CHOSEN_NAME == ['Rayo Confuso', "Mimético", "Supersónico", "Movimiento Espejo"]:
         # pkmn_recived se confunde
         pass
 
-    elif CHOSEN_NAME == ['Beso Amoroso', 'Canto']:
+    elif CHOSEN_NAME == ['Beso Amoroso', 'Canto', "Espora", "Somnífero", "Hipnosis"]:
         # Duerme al rival
         pass
 
@@ -211,11 +355,7 @@ def pokemon_state(chosen_attack, pkmn_attacked, pkmn_received):
 
         print("Se han restaurados las estadisticas de ambos pokemon!")
 
-    elif CHOSEN_NAME == ['Ventisca']:
-        # probabilidad del 10% de conjelar al rival
-        pass
-
-    elif CHOSEN_NAME == ["Amortiguador "]:
+    elif CHOSEN_NAME == ["Amortiguador", "Recuperación"]:
         if pkmn_attacked['current_health'] == pkmn_attacked["base_health"]/2:
             print(f"{pkmn_attacked['name']} ha fallado el ataque!")
         else:
@@ -224,6 +364,32 @@ def pokemon_state(chosen_attack, pkmn_attacked, pkmn_received):
                 pkmn_attacked['current_health'] = pkmn_attacked["base_health"]
             print(f"La vida de {pkmn_attacked['name']} se ha restaurtado a la mitad")
 
+    elif CHOSEN_NAME == ["Gas Venenoso", "Polvo Veneno", "Tóxico"]:
+        # envenena al rival (cada ataque tiene su particularidad)
+        pass
+
+    elif CHOSEN_NAME == ['Ventisca']:
+        # probabilidad del 10% de congelar al rival
+        pass
+
+    elif CHOSEN_NAME == ["Remolino", "Rugido", "Teletransporte"]:
+        # Se usa para ahuyentar pokémon salvajes, en combate falla
+        pass
+    elif CHOSEN_NAME == ["Salpicadura"]:
+        # No tiene efecto alguno
+        pass
+    elif CHOSEN_NAME == ["Sustituto"]:
+        # funcion sustituto
+        pass
+    elif CHOSEN_NAME == ["Transformación"]:
+        # funcion transformacion
+        pass
+    elif CHOSEN_NAME == ["Drenadoras"]:
+        # funcion drenadforas / roba vida del rival y se recupera
+        pass
+    elif CHOSEN_NAME == ["Descanso"]:
+        # funcion descanso/ se duerme dos turno pero recupera toda la vida
+        pass
 
 def survival_mode(pokemon_list, player_profile):
     print("------Bienvenido al Pokemon Survival Mode------")
@@ -267,13 +433,15 @@ def survival_mode(pokemon_list, player_profile):
                 random_enemy_attack = random.randint(0, len(enemy_pokemon_fight['attacks'] - 1))
                 chosen_attack = enemy_pokemon_fight["attacks"][random_enemy_attack]
                 print(f"El {enemy_pokemon_fight['name']} de tu contrincante ha usado {chosen_attack['name']}")
+                damege(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
+                damage_state(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
                 input("Preciona ENTER para continua...")
                 clear_screen()
 
                 #Turno del jugador
                 print("Es tu turno")
                 print(f"Que hara {player_pkmn_fight['name']}?")
-                action = input("A) Atacar, B) Mochila, C) Cambiar, D)Rendirse")
+                action = input("A) Atacar, B) Mochila, C) Cambiar, D)Rendirse: ")
                 if action == "A":
                     clear_screen()
                     attacks_name = [attack["name"] for attack in player_pkmn_fight['attacks']]
@@ -285,7 +453,10 @@ def survival_mode(pokemon_list, player_profile):
                         option = int(input("¿Cual eliges?: "))
                         if 1 <= option <= len(player_pkmn_fight["attacks"]):
                             chosen_attack = player_pkmn_fight["attacks"][option - 1]
-                            print(f"{player_pkmn_fight['name']} uno {chosen_attack['name']}!")
+                            print(f"{player_pkmn_fight['name']} usa {chosen_attack['name']}!")
+                            damege(chosen_attack, player_pkmn_fight, enemy_pokemon_fight)
+                            damage_state(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
+                            # FUNCION DE BAJA DE VIDA
                         else:
                             print("Número inválido, elige una opción correcta.")
                     except ValueError:

@@ -5,13 +5,15 @@ from requests_html import HTMLSession
 
 pokemon_base = {
     "name": "",
-    "current_health": None,
-    "base_health": None,
-    "level": None,
+    "current_health": 0,
+    "base_health": 0,
+    "level": 0,
     "current_exp": 0,
-    "attack": None,
-    "defense": None,
-    "speed": None
+    "attack": 0,
+    "defense": 0,
+    "speed": 0,
+    "special attack": 0,
+    "special defense": 0
 }
 URL_BASE_POKEMON = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/pkmn&pk="
 URL_MOVESET = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/movimientos_nivel&pk="
@@ -50,7 +52,8 @@ def get_pokemon(index):
             "name": attack_item.find("a", first=True).text,
             "type": attack_item.find("td")[1].find("img", first=True).attrs["alt"],
             "min level": int(attack_item.find("th", first=True).text) if attack_item.find("th", first=True).text else 0,
-            "damege": int(attack_item.find("td")[3].text.replace("--","0")),
+            "power attack": int(attack_item.find("td")[3].text.replace("--","0")),
+            "category": attack_item.find("td")[2].find("img", first=True).attrs["alt"]
         }  
         new_pokemon["attacks"].append(attack)
 
@@ -71,6 +74,14 @@ def get_pokemon(index):
 
     # Get Pokémon speed
     pokemon_speed =  pokemon_base_healt_page.html.find("td.right")[6].text.split("\n")[0]
+    new_pokemon["speed"] = int(pokemon_speed)
+
+    # Get Pokémon special attack
+    pokemon_speed =  pokemon_base_healt_page.html.find("td.right")[8].text.split("\n")[0]
+    new_pokemon["speed"] = int(pokemon_speed)
+
+    # Get Pokémon special defense
+    pokemon_speed =  pokemon_base_healt_page.html.find("td.right")[10].text.split("\n")[0]
     new_pokemon["speed"] = int(pokemon_speed)
 
     return new_pokemon

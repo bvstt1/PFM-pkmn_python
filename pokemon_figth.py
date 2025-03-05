@@ -17,6 +17,16 @@ def get_player_profile():
     }
 
 
+def print_pokemon_stats(player_profile):
+    stats = [(pokemon["name"], pokemon["level"], pokemon["current_health"], pokemon["base_health"],
+              pokemon["attack"], pokemon["defense"], pokemon["speed"])
+             for pokemon in player_profile["pokemon_inventory"]]
+    for cont, (name, level, current_health, base_health, attack, defense, speed) in enumerate(stats, start=1):
+        print(f" {cont}) {name} | Nivel: {level} | Salud: {current_health}/{base_health} | Ataque: {attack} | "
+              f"Defensa: {defense} | Velocidad: {speed}")
+        return cont
+
+
 def inventory_menu(player_profile):
     while True:
         try:
@@ -56,13 +66,7 @@ Presione ENTER para volver al menu de inventario... ''')
                 print('''+--------------------------------------------------+
 |                    Inventario                    |
 +--------------------------------------------------+''')
-                stats = [(pokemon["name"], pokemon["level"], pokemon["base_health"], pokemon["base_health"],
-                          pokemon["attack"], pokemon["defense"], pokemon["speed"])
-                         for pokemon  in player_profile["pokemon_inventory"]]
-                for cont, (name, level, base_healt, base_health, attack, defense, speed)  in enumerate(stats, start=1):
-                    print(f" {cont}) {name} | Nivel: {level} | Salud: {base_health}/{base_healt} | Ataque: {attack} | "
-                          f"Defensa: {defense} | Velocidad: {speed}")
-
+                print_pokemon_stats(player_profile)
                 int(input('''+--------------------------------------------------+
 Presione ENTER para volver al menú de inventario... '''))
 
@@ -120,10 +124,10 @@ def choose_initial_pokemon(pokemon_list, player_profile):
             print("Opción invalida")
     return
 
-#Funcion para elegir el pokemon al iniciar el combate o al cambiar de pokemon
-def get_choose_player_pokemon_fight(player_profile):
+#Funcion para elegir el pokemon
+def get_choose_player_pokemon(player_profile):
     names_pkmn = [pokemon["name"] for pokemon in player_profile["pokemon_inventory"]]
-    print ("¿Que Pokémon quieres elegir?")
+    print ("Tienes estos Pokémon:")
     for cont, nombres in enumerate(names_pkmn, start=1):
         print(cont, nombres)
     option = int(input("¿Cual eliges?: "))
@@ -132,8 +136,7 @@ def get_choose_player_pokemon_fight(player_profile):
         return chose_pkmn
     else:
         print("Opción no válida, elige un número válido.")
-        return get_choose_player_pokemon_fight(player_profile)
-
+        return get_choose_player_pokemon(player_profile)
 
 
 def get_enemy_profile():
@@ -143,7 +146,7 @@ def get_enemy_profile():
     }
 
 
-def get_choose_enemy_pokemon_fight(enemy_profile):
+def get_choose_enemy_pokemon(enemy_profile):
     chose_pkmn = random.choice(enemy_profile['pokemon_inventory'])
     chose_pkmn['level'] = random.randint(3, 5)
     chose_pkmn['attack'] = attacks_pokemon(chose_pkmn)
@@ -154,13 +157,13 @@ def get_choose_enemy_pokemon_fight(enemy_profile):
 def pokemon_type_damage(chosen_attack, pkmn_attacked, pkmn_received):
     multiplicador = 1
 
-    #normal
+    # Normal
     if chosen_attack["type"] == "normal" and pkmn_received["type"] in ["fantasma"]:
         multiplicador = 0
     elif chosen_attack["type"] == "normal" and pkmn_received["type"] in ["roca"]:
         multiplicador = 0.5
 
-    #lucha
+    # Lucha
     elif chosen_attack["type"] == "lucha" and pkmn_received["type"] in ["fantasma"]:
         multiplicador = 0
     elif chosen_attack["type"] == "lucha" and pkmn_received["type"] in ["volador", "veneno", "bicho", "psiquico"]:
@@ -172,12 +175,6 @@ def pokemon_type_damage(chosen_attack, pkmn_attacked, pkmn_received):
     elif chosen_attack["type"] == "volador" and pkmn_received["type"] in ["roca", "electrico"]:
         multiplicador = 0.5
     elif chosen_attack["type"] == "volador" and pkmn_received["type"] in ["lucha", "bicho", "planta"]:
-        multiplicador = 2
-
-    #veneno
-    elif chosen_attack["type"] == "veneno" and pkmn_received["type"] in ["veneno","tierra","roca","fantasma"]:
-        multiplicador = 0.5
-    elif chosen_attack["type"] == "veneno" and pkmn_received["type"] in ["bicho", "planta"]:
         multiplicador = 2
 
     #veneno
@@ -262,23 +259,35 @@ def pokemon_type_damage(chosen_attack, pkmn_attacked, pkmn_received):
     return multiplicador
 
 
-def damege (chosen_attack, pkmn_attacked,pkmn_received):
-    real_damage = 0
-    multiplicador = pokemon_type_damage(chosen_attack,pkmn_attacked, pkmn_received)
+def damage(chosen_attack, pkmn_attacked,pkmn_received):
+    multiplier = pokemon_type_damage(chosen_attack,pkmn_attacked, pkmn_received)
 
     if chosen_attack["category"] == "fisico":
-        damage = (((2 * pkmn_attacked['level']) / 5) + 2) * chosen_attack['power attack'] * \
+        damage_pkmn = (((2 * pkmn_attacked['level']) / 5) + 2) * chosen_attack['power attack'] * \
                  (pkmn_attacked['attack'] / pkmn_received['defense']) / 50 + 2
-        real_damage = int(damage * multiplicador)
-
+        real_damage = int(damage_pkmn * multiplier)
+        pkmn_received["current_health"] -= real_damage
+        print(f"{pkmn_received['name']} ha recibido {real_damage} puntos de daño")
+        input("Precina Enter para continuar...")
+        if pkmn_received['current_health'] <= 0:
+            print(f"{pkmn_received['name']} se ha debilitado!!")
+            input("Preciona ENTER para continuar...")
+        else:
+            pass
     elif chosen_attack["category"] == "especial":
-        damage = (((2 * pkmn_attacked['level']) / 5) + 2) * chosen_attack['power attack'] * \
+        damage_pkmn = (((2 * pkmn_attacked['level']) / 5) + 2) * chosen_attack['power attack'] * \
                  (pkmn_attacked['special attack'] / pkmn_received['special defense']) / 50 + 2
-        real_damage =  int(damage * multiplicador)
-
+        real_damage =  int(damage_pkmn * multiplier)
+        pkmn_received["current_health"] -= real_damage
+        print(f"{pkmn_received['name']} ha recibido {real_damage} puntos de daño!")
+        input("Precina Enter para continuar...")
+        if pkmn_received['current_health'] <= 0:
+            print(f"{pkmn_received['name']} se ha debilitado!!")
+            input("Preciona ENTER para continuar...")
+        else:
+            pass
     else:
         pass
-    return real_damage, multiplicador
 
 
 def damage_state(chosen_attack, pkmn_attacked, pkmn_received):
@@ -391,12 +400,80 @@ def damage_state(chosen_attack, pkmn_attacked, pkmn_received):
         # funcion descanso/ se duerme dos turno pero recupera toda la vida
         pass
 
+
+def enemy_turn(enemy_pokemon_fight, player_pkmn_fight):
+    random_enemy_attack = random.randint(0, len(enemy_pokemon_fight['attacks'] - 1))
+    chosen_attack = enemy_pokemon_fight["attacks"][random_enemy_attack]
+    print(f"El {enemy_pokemon_fight['name']} de tu contrincante ha usado {chosen_attack['name']}")
+    damage(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
+    damage_state(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
+    input("Preciona ENTER para continua...")
+    clear_screen()
+    return
+
+def player_turn(player_pkmn_fight, enemy_pokemon_fight):
+    clear_screen()
+    attacks_name = [attack["name"] for attack in player_pkmn_fight['attacks']]
+    print(f"¿Que ataque realizara {player_pkmn_fight['name']}?")
+    for cont, attack in enumerate(attacks_name, start=1):
+        print(f"{cont}. {attack}")
+    try:
+        option = int(input("¿Cual eliges?: "))
+        if 1 <= option <= len(player_pkmn_fight["attacks"]):
+            chosen_attack = player_pkmn_fight["attacks"][option - 1]
+            print(f"{player_pkmn_fight['name']} usa {chosen_attack['name']}!")
+            damage(chosen_attack, player_pkmn_fight, enemy_pokemon_fight)
+            damage_state(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
+            # FUNCION DE BAJA DE VIDA
+        else:
+            print("Número inválido, elige una opción correcta.")
+    except ValueError:
+        print("Entrada inválida, ingresa un número.")
+    return
+
+def backpack(player_profile):
+    clear_screen()
+    print("Tienes estos objetos")
+    print(f"1. Pociones: {player_profile['health_potion']}")
+    print(f"2. Pokebolas: {player_profile['pokeballs']}")
+    option = input("¿Qué decides hacer?: ")
+    if option == "1":
+        health_pkmn(player_profile)
+        return
+    elif option == "2":
+        return option
+    else:
+        print("Opción inválida, elige 1 o 2.")
+
+def health_pkmn(player_profile):
+    print("Que Pokémon se curara?: ")
+    health_pokemon = get_choose_player_pokemon(player_profile)
+    if player_profile["health_potion"] > 0:
+        if health_pokemon["current_health"] < health_pokemon["base_health"]:
+            health_pokemon["current_health"] += 20
+            if health_pokemon["current_health"] > health_pokemon["base_health"]:
+                health_pokemon["current_health"] = health_pokemon["base_health"]
+            player_profile["health_potion"] -= 1
+            print(
+                f"{health_pokemon['name']} ha recuperado 20 puntos de vida. Salud actual: "
+                f"{health_pokemon['current_health']}/{health_pokemon['base_health']}")
+        else:
+            clear_screen()
+            print(f"{health_pokemon['name']} ya tiene la salud al máximo.")
+            time.sleep(1)
+    else:
+        clear_screen()
+        print("No tienes pociones disponibles.")
+        time.sleep(1)
+
+
 def survival_mode(pokemon_list, player_profile):
     print("------Bienvenido al Pokemon Survival Mode------")
     print("Preparate para tu primer combate")
     clear_screen()
 
     while any_pokemon_lives(player_profile):
+
         enemy_profile = get_enemy_profile()
 
         # Dependiendo del numero de combates que tenga el jugador, la probabilidad en la cantidad de Pokémon que
@@ -422,87 +499,38 @@ def survival_mode(pokemon_list, player_profile):
 
         #Elección de Pokemon dependiendo de los que se tengan en el inventario
 
-        player_pkmn_fight = get_choose_player_pokemon_fight(player_profile)
-        enemy_pokemon_fight = get_choose_enemy_pokemon_fight(enemy_profile)
+        player_pkmn_fight = get_choose_player_pokemon(player_profile)
+        enemy_pokemon_fight = get_choose_enemy_pokemon(enemy_profile)
 
         #Comienza el combate
-        while any_pokemon_lives(enemy_profile):
-            if enemy_pokemon_fight['speed'] > player_pkmn_fight ['speed']:
-                #Turno del contrincante
-                print("Comienza tu contrincante")
-                random_enemy_attack = random.randint(0, len(enemy_pokemon_fight['attacks'] - 1))
-                chosen_attack = enemy_pokemon_fight["attacks"][random_enemy_attack]
-                print(f"El {enemy_pokemon_fight['name']} de tu contrincante ha usado {chosen_attack['name']}")
-                damege(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
-                damage_state(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
-                input("Preciona ENTER para continua...")
-                clear_screen()
-
-                #Turno del jugador
+        while any_pokemon_lives(player_profile):
+            if player_pkmn_fight['speed'] >= enemy_pokemon_fight['speed']:
+                # Turno del jugador
                 print("Es tu turno")
                 print(f"Que hara {player_pkmn_fight['name']}?")
                 action = input("A) Atacar, B) Mochila, C) Cambiar, D)Rendirse: ")
                 if action == "A":
-                    clear_screen()
-                    attacks_name = [attack["name"] for attack in player_pkmn_fight['attacks']]
-                    print(f"¿Que ataque realizara {player_pkmn_fight['name']}?")
-                    for cont, attack in enumerate(attacks_name, start=1):
-                        print(f"{cont}. {attack}")
-
-                    try:
-                        option = int(input("¿Cual eliges?: "))
-                        if 1 <= option <= len(player_pkmn_fight["attacks"]):
-                            chosen_attack = player_pkmn_fight["attacks"][option - 1]
-                            print(f"{player_pkmn_fight['name']} usa {chosen_attack['name']}!")
-                            damege(chosen_attack, player_pkmn_fight, enemy_pokemon_fight)
-                            damage_state(chosen_attack, enemy_pokemon_fight, player_pkmn_fight)
-                            # FUNCION DE BAJA DE VIDA
-                        else:
-                            print("Número inválido, elige una opción correcta.")
-                    except ValueError:
-                        print("Entrada inválida, ingresa un número.")
-
+                    player_turn(player_pkmn_fight,enemy_pokemon_fight)
                 elif action == "B":
-                    clear_screen()
-                    print("Tienes estos objetos")
-                    print(f"1. Pociones: {player_profile['health_potion']}")
-                    print(f"2. Pokebolas: {player_profile['pokeballs']}")
-
-                    option = input("¿Qué decides hacer?: ")
-                    if option == "1":
-                        if player_profile["health_potion"] > 0:
-                            if player_pkmn_fight["current_health"] < player_pkmn_fight["base_health"]:
-                                player_pkmn_fight["current_health"] += 20
-                                if player_pkmn_fight["current_health"] > player_pkmn_fight["base_health"]:
-                                    player_pkmn_fight["current_health"] = player_pkmn_fight["base_health"]
-                                player_profile["health_potion"] -= 1
-                                print(
-                                    f"{player_pkmn_fight['name']} ha recuperado 20 puntos de vida. Salud actual: "
-                                    f"{player_pkmn_fight['current_health']}/{player_pkmn_fight['base_health']}")
-                            else:
-                                print(f"{player_pkmn_fight['name']} ya tiene la salud al máximo.")
-                        else:
-                            print("No tienes pociones disponibles.")
-
-                    elif option == "2":
-                        print("No puedes usar pokebolas en este modo.")
-
-                    else:
-                        print("Opción inválida, elige 1 o 2.")
+                    backpack(player_profile)
 
                 elif action == "C":
-                    player_pkmn_fight = get_choose_player_pokemon_fight(player_profile)
+                    player_pkmn_fight = get_choose_player_pokemon(player_profile)
 
                 elif action == "D":
                     clear_screen()
                     print("Haz decidido rendirte, saldras del Survival Mode")
                     sleep(1)
                     return
+                # Turno del contrincnte
+                enemy_turn(enemy_pokemon_fight, player_pkmn_fight)
 
 
 
 def main ():
-    pass
+    pokemon_list = get_all_pokemon()
+    player_profile = get_player_profile()
+    survival_mode(pokemon_list,player_profile)
 
 if __name__ ==  "__main__":
     main()
